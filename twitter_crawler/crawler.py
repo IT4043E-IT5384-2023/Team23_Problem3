@@ -85,6 +85,8 @@ def crawling_twitter_account(
     
     for t in topic:
         try:
+            logger.info(f"Start crawling twitter account for topic {t}")
+            
             URL = f"https://twitter.com/search?q=%23{t}&src=typed_query"
             driver.get(URL)
 

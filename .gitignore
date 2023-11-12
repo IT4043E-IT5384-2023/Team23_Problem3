@@ -3,3 +3,4 @@ logs/
 *.ipynb
 __pycache__/
 .cache/
+.env

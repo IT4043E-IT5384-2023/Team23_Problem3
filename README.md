@@ -21,6 +21,7 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#usage">Usage</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -68,6 +69,14 @@ Install all packages mentioned in requirements.txt
 3. Create a .env file and configure all of the following environment variables.
 - TWITTER_USER_NAME: User-name for your account in twitter
 - TWITTER_USER_PASSWORD: Your password
+
+
+### Usage
+
+- Run command in cmd
+   ```sh
+   python main.py
+   ```
 
 
 <!-- ROADMAP -->

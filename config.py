@@ -7,7 +7,7 @@ LOG_FILE = './logs/app.log'
 DATA_DIR = './data'
 
 # CONFIG
-NUM_ITER = 100
+NUM_ITER = 1000
 ITER_INTERVAL = 5
 
 # TOPIC
@@ -18,4 +18,23 @@ TOPIC = [
     'shiba', 'shib', 
     'shibainu', 'shibarmy', 
     'shibarmy', 'shibainucoin', 
+    'blockchain', 'altcoins', 
+    'litecoin', 'ripple', 
+    'cardano', 'polkadot', 
+    'solana', 'tezos', 
+    'uniswap', 'defi', 
+    'nft', 'smartcontract', 
+    'cryptocurrencynews', 'cryptoexchange', 
+    'cryptotrading', 'cryptowallet', 
+    'hodl', 'cryptomining',
+    'bitcoincash', 'eos', 
+    'stellar', 'tron', 
+    'monero', 'dash', 
+    'cosmos', 'vechain', 
+    'theta', 'matic', 
+    'Chainlink', 'aave', 
+    'compound', 'synthetix', 
+    'maker', 'cryptoanalysis', 
+    'cryptomemes', 'cryptogaming',
+    'bitcoinprice', 'ethprice',
 ]

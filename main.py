@@ -19,7 +19,7 @@ logger.info(f"Finish loading topics from .env file")
 
 
 if __name__ == "__main__":
-
+    
     crawling_twitter_account(
         data_dir = data_dir,
         topic = topic,

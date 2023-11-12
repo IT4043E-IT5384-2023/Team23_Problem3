@@ -67,8 +67,8 @@ Install all packages mentioned in requirements.txt
    pip install -r requirements.txt
    ```
 3. Create a .env file and configure all of the following environment variables.
-- TWITTER_USER_NAME: User-name for your account in twitter
-- TWITTER_USER_PASSWORD: Your password
+- TWITTER_USER_NAME:  (User-name for your account in twitter)
+- TWITTER_USER_PASSWORD:  (Your password)
 
 
 ### Usage
@@ -77,7 +77,6 @@ Install all packages mentioned in requirements.txt
    ```sh
    python main.py
    ```
-
 
 <!-- ROADMAP -->
 ## Roadmap

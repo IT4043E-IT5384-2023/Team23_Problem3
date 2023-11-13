@@ -9,6 +9,7 @@ DATA_DIR = './data'
 # CONFIG
 NUM_ITER = 10
 ITER_INTERVAL = 5
+THREADS = 10
 
 # TOPIC
 TOPIC = [

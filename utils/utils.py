@@ -11,6 +11,7 @@ def find_user_tag_from_string(input_string):
     return matches
 
 
+
 if __name__ == "__main__":
 
     input_string = "This is a line.\nThis is another line.\nAnd one more line."

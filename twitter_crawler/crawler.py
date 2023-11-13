@@ -2,10 +2,11 @@ import time
 import os
 import pandas as pd
 import dotenv
-from typing import List, Union
+from typing import Dict, Tuple
 from utils.set_logger import setup_logger
 from utils.utils import *
 from config import *
+from threading import Lock
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -38,9 +39,11 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 def crawling_twitter_account(
     data_dir: str = None,
-    topic: Union[str, List[str]] = None,
+    topic_url: Tuple[str] = None,
+    # topic_url: str = None,
     numIter: int = None, 
-    iterInterval: int = None 
+    iterInterval: int = None,
+    lock: Lock = None
 ) -> pd.DataFrame:
     """
     Crawl twitter account
@@ -59,38 +62,33 @@ def crawling_twitter_account(
             Dataframe of crawled data
 
     """
-    driver = webdriver.Chrome(options=chrome_options)
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
+    with lock:
+        driver = webdriver.Chrome(options=chrome_options)
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
 
-    # -----------------------------------------------------------------
-    # Login
-    driver.get("https://twitter.com/login")
-    time.sleep(5)
-    username = driver.find_element(By.XPATH,"//input[@name='text']")
-    username.send_keys(Username)
-    next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
-    next_button.click()
+        # -----------------------------------------------------------------
+        # Login
+        driver.get("https://twitter.com/login")
+        time.sleep(5)
+        username = driver.find_element(By.XPATH,"//input[@name='text']")
+        username.send_keys(Username)
+        next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
+        next_button.click()
 
-    time.sleep(5)
-    password = driver.find_element(By.XPATH,"//input[@name='password']")
-    password.send_keys(Password)
-    log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
-    log_in.click()
-    time.sleep(5)
+        time.sleep(5)
+        password = driver.find_element(By.XPATH,"//input[@name='password']")
+        password.send_keys(Password)
+        log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
+        log_in.click()
+        time.sleep(5)
 
-    # -----------------------------------------------------------------
-    # Crawl
-    if isinstance(topic, str):
-        topic = [topic]
-    
-    for t in topic:
+        # -----------------------------------------------------------------
+        # Crawl 
+        topic, URL = topic_url
         try:
-            logger.info(f"Start crawling twitter account for topic {t}")
-
-            URL = f"https://twitter.com/search?q=%23{t}&src=typed_query"
+            logger.info(f"Start crawling twitter account for {topic}")
             driver.get(URL)
-
             df = {
                 'UserTag': [], 'Time': [], 
                 'Tweet': [], 'Reply': [], 
@@ -106,9 +104,6 @@ def crawling_twitter_account(
                     )
                     
                 except:
-                    logger.info(
-                        "Iter {}/{}: Lagging catched, waiting.".format(i + 1, numIter)
-                    )
                     time.sleep(20)
                     break
 
@@ -123,11 +118,6 @@ def crawling_twitter_account(
                         UserTag = format_string(UserTag)
                         df['UserTag'].append(UserTag)
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass    
-                
-                    try:
                         Time = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH, ".//time")
@@ -135,11 +125,6 @@ def crawling_twitter_account(
                         ).get_attribute('datetime')
                         df['Time'].append(Time)
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass
-                
-                    try:
                         Tweet = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH,".//div[@data-testid='tweetText']")
@@ -148,11 +133,6 @@ def crawling_twitter_account(
                         Tweet = format_string(Tweet)
                         df['Tweet'].append(Tweet)   
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass
-
-                    try:
                         Reply = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH,".//div[@data-testid='reply']")
@@ -160,11 +140,6 @@ def crawling_twitter_account(
                         ).text
                         df['Reply'].append(Reply)
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass
-                
-                    try:
                         reTweet = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH,".//div[@data-testid='retweet']")
@@ -172,11 +147,6 @@ def crawling_twitter_account(
                         ).text
                         df['reTweet'].append(reTweet)
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass
-                
-                    try:
                         Like = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH,".//div[@data-testid='like']")
@@ -184,36 +154,29 @@ def crawling_twitter_account(
                         ).text
                         df['Like'].append(Like)
 
-                    except Exception as e:
-                        logger.error(e)
-                        pass
-
-                    try:
                         View = wait.until(EC.presence_of_element_located
                             (
                                 (By.XPATH, ".//a[@role='link']/div/div[2]/span/span/span")
                             )
                         ).text
                         df['View'].append(View)
+
                     except Exception as e:
-                        logger.error(e)
                         pass
 
-                logger.info("Iter {}/{}: Retrieving succeed.".format(i + 1, numIter))
                 driver.execute_script('window.scrollBy(0,3200);')
                 time.sleep(iterInterval)
 
             output = pd.DataFrame.from_dict(df, orient='index')
             output_ = output.T
-            # df = pd.DataFrame(df)
-            output_.to_csv(f"{data_dir}/{t}.csv", index=False)
-            logger.info(f"Finish crawling twitter account for topic {t}")
+            output_.to_csv(f"{data_dir}/{topic}.csv", index=False)
+
+            logger.info(f"Finish crawling twitter account for topic {topic}")
 
         except Exception as e:
             logger.error(e)
-            continue
 
-    driver.quit()
+        driver.quit()
 
 
 if __name__ == "__main__":

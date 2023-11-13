@@ -86,7 +86,7 @@ def crawling_twitter_account(
     for t in topic:
         try:
             logger.info(f"Start crawling twitter account for topic {t}")
-            
+
             URL = f"https://twitter.com/search?q=%23{t}&src=typed_query"
             driver.get(URL)
 
@@ -111,7 +111,7 @@ def crawling_twitter_account(
                         "Iter {}/{}: Lagging catched, waiting.".format(i + 1, numIter)
                     )
                     time.sleep(20)
-                    continue
+                    break
 
                 for article in articles:
                     try:
@@ -123,7 +123,7 @@ def crawling_twitter_account(
 
                     except Exception as e:
                         logger.error(e)
-                        pass
+                        pass    
                 
                     try:
                         driver.implicitly_wait(5)
@@ -190,8 +190,10 @@ def crawling_twitter_account(
                 driver.execute_script('window.scrollBy(0,3200);')
                 time.sleep(iterInterval)
 
-            df = pd.DataFrame(df)
-            df.to_csv(f"{data_dir}/{t}.csv", index=False)
+            output = pd.DataFrame.from_dict(df, orient='index')
+            output_ = output.T
+            # df = pd.DataFrame(df)
+            output_.to_csv(f"{data_dir}/{t}.csv", index=False)
             logger.info(f"Finish crawling twitter account for topic {t}")
 
         except Exception as e:

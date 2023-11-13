@@ -7,7 +7,7 @@ LOG_FILE = './logs/app.log'
 DATA_DIR = './data'
 
 # CONFIG
-NUM_ITER = 1000
+NUM_ITER = 10
 ITER_INTERVAL = 5
 
 # TOPIC

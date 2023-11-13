@@ -4,16 +4,17 @@ import pandas as pd
 import dotenv
 from typing import List, Union
 from utils.set_logger import setup_logger
+from utils.utils import *
 from config import *
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
-# from selenium.webdriver.common.action_chains import ActionChains
-# from selenium.webdriver.chrome.service import Service as ChromeService # Similar thing for firefox also!
-# from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.service import Service as ChromeService # Similar thing for firefox also!
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 
 logger = setup_logger(__name__)
 
@@ -91,12 +92,9 @@ def crawling_twitter_account(
             driver.get(URL)
 
             df = {
-                'UserTag': [],
-                'Time': [],
-                'Tweet': [],
-                'Reply': [],
-                'reTweet': [],
-                'Like': [],
+                'UserTag': [], 'Time': [], 
+                'Tweet': [], 'Reply': [], 
+                'reTweet': [], 'Like': [], 
                 'View': []
             }
 
@@ -106,6 +104,7 @@ def crawling_twitter_account(
                     articles = driver.find_elements(
                         By.XPATH,"//article[@data-testid='tweet']"
                     )
+                    
                 except:
                     logger.info(
                         "Iter {}/{}: Lagging catched, waiting.".format(i + 1, numIter)
@@ -114,11 +113,14 @@ def crawling_twitter_account(
                     break
 
                 for article in articles:
+                    wait = WebDriverWait(article, 5)
                     try:
-                        driver.implicitly_wait(5)
-                        UserTag = article.find_element(
-                            By.XPATH,".//div[@data-testid='User-Name']"
+                        UserTag = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH, ".//div[@data-testid='User-Name']")
+                            )
                         ).text
+                        UserTag = format_string(UserTag)
                         df['UserTag'].append(UserTag)
 
                     except Exception as e:
@@ -126,60 +128,71 @@ def crawling_twitter_account(
                         pass    
                 
                     try:
-                        driver.implicitly_wait(5)
-                        Time = article.find_element(
-                            By.XPATH,".//time"
+                        Time = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH, ".//time")
+                            )
                         ).get_attribute('datetime')
-
                         df['Time'].append(Time)
+
                     except Exception as e:
                         logger.error(e)
                         pass
                 
                     try:
-                        driver.implicitly_wait(5)
-                        Tweet = article.find_element(
-                            By.XPATH,".//div[@data-testid='tweetText']"
+                        Tweet = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH,".//div[@data-testid='tweetText']")
+                            )
                         ).text
+                        Tweet = format_string(Tweet)
                         df['Tweet'].append(Tweet)   
+
                     except Exception as e:
                         logger.error(e)
                         pass
 
                     try:
-                        driver.implicitly_wait(5)
-                        Reply = article.find_element(
-                            By.XPATH,".//div[@data-testid='reply']"
+                        Reply = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH,".//div[@data-testid='reply']")
+                            )
                         ).text
                         df['Reply'].append(Reply)
+
                     except Exception as e:
                         logger.error(e)
                         pass
                 
                     try:
-                        driver.implicitly_wait(5)
-                        reTweet = article.find_element(
-                            By.XPATH,".//div[@data-testid='retweet']"
+                        reTweet = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH,".//div[@data-testid='retweet']")
+                            )
                         ).text
                         df['reTweet'].append(reTweet)
+
                     except Exception as e:
                         logger.error(e)
                         pass
                 
                     try:
-                        driver.implicitly_wait(5)
-                        Like = article.find_element(
-                            By.XPATH,".//div[@data-testid='like']"
+                        Like = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH,".//div[@data-testid='like']")
+                            )
                         ).text
                         df['Like'].append(Like)
+
                     except Exception as e:
                         logger.error(e)
                         pass
 
                     try:
-                        driver.implicitly_wait(5)
-                        View = article.find_element(
-                            By.XPATH,".//a[@role='link']/div/div[2]/span/span/span"
+                        View = wait.until(EC.presence_of_element_located
+                            (
+                                (By.XPATH, ".//a[@role='link']/div/div[2]/span/span/span")
+                            )
                         ).text
                         df['View'].append(View)
                     except Exception as e:

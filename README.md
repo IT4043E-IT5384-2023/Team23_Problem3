@@ -25,7 +25,6 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
 
   </ol>
 </details>
@@ -77,13 +76,6 @@ Install all packages mentioned in requirements.txt
    ```sh
    python main.py
    ```
-
-<!-- ROADMAP -->
-## Roadmap
-
-- [x] Add crawler for Twitter account
-- [ ] Add code base for visualize processes.
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [Python.com]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white

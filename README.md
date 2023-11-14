@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <div align="center">
 
-  <h1 align="center"><br>Twitter account data</br></h1>
+  <h1 align="center"><br>Twitter post by topic</br></h1>
 
 </div>
 
@@ -34,7 +34,7 @@
 <!-- ABOUT THE REPOSITORY -->
 ## About The Repository
 
-This repository is used to build data crawlers and ETL processes for all the data collected.
+This repository is used to build data crawlers for Twitter post by topic.
 
 
 <!-- 
@@ -66,9 +66,12 @@ Install all packages mentioned in requirements.txt
    pip install -r requirements.txt
    ```
 3. Create a .env file and configure all of the following environment variables.
-- TWITTER_USER_NAME:  (User-name for your account in twitter)
+- TWITTER_USER_NAME: Username for your accounts in twitter (Ex. 'username1, username2, username3...')
 - TWITTER_USER_PASSWORD:  (Your password)
 
+Note: 
+  - All accounts must have save password
+  - Number of Threads in config.py should be approximately equal to number of accounts
 
 ### Usage
 

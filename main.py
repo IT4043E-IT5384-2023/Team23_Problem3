@@ -1,11 +1,12 @@
-from twitter_crawler.crawler import *
-from utils.set_logger import setup_logger
+import asyncio
 from config import *
 from time import time
-from threading import Lock
-from concurrent.futures import ThreadPoolExecutor
 from typing import Tuple
-import asyncio
+from threading import Lock
+from twitter_crawler.crawler import *
+from utils.set_logger import setup_logger
+from concurrent.futures import ThreadPoolExecutor
+
 
 logger = setup_logger(__name__)
 
@@ -18,8 +19,10 @@ logger.info(f"Finish loading params from config file")
 
 URLS = []
 for t in topic:
-    url = f"https://twitter.com/search?q=%23{t}&src=typed_query"
-    URLS.append((t, url))
+    if t + '.json' not in os.listdir(data_dir):
+        url = f"https://twitter.com/search?q=%23{t}&src=typed_query"
+        URLS.append((t, url))
+
 #-------------------------------------------------------------------------------------
 
 async def twitter_crawler(url: Tuple[str]):

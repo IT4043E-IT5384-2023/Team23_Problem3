@@ -1,18 +1,20 @@
 import time
 import os
-import pandas as pd
 import dotenv
+import random
+import pandas as pd
+from config import *
+from utils.utils import *
+from threading import Lock
 from typing import Dict, Tuple
 from utils.set_logger import setup_logger
-from utils.utils import *
-from config import *
-from threading import Lock
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
 logger = setup_logger(__name__)
 
@@ -27,7 +29,7 @@ logger.info(f"Finish loading user password from .env file")
 
 chrome_options = Options()
 chrome_options.add_argument('--ignore-certificate-errors')
-chrome_options.add_argument('--disable-gpu')
+# chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--headless=new")
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -61,6 +63,7 @@ def crawling_twitter_post(
     """
     with lock:
         driver = webdriver.Chrome(options=chrome_options)
+        username_list = Username.split(', ')
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
@@ -70,7 +73,8 @@ def crawling_twitter_post(
                 driver.get("https://twitter.com/login")
                 time.sleep(5)
                 username = driver.find_element(By.XPATH,"//input[@name='text']")
-                username.send_keys(Username)
+                user = random.choice(username_list)
+                username.send_keys(user)
                 next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
                 next_button.click()
 
@@ -80,12 +84,12 @@ def crawling_twitter_post(
                 log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
                 log_in.click()
                 time.sleep(5)
-                logger.info("Login successfully.")
+                logger.info(f"Login successfully into account {user}.")
                 break
             
             except Exception as e:
                 driver.quit()
-                time.sleep(5)
+                time.sleep(20)
 
         # ------------------------------- Crawl ----------------------------------
         topic, URL = topic_url
@@ -97,20 +101,20 @@ def crawling_twitter_post(
             'reTweet': [], 'Like': [], 
             'View': []
         }
-
-        time.sleep(5)
         for i in range(numIter):
             initial_scroll_position = driver.execute_script(
                 "return window.scrollY;"
             )
-            try:    
-                articles = driver.find_elements(
-                    By.XPATH,"//article[@data-testid='tweet']"
-                )
-                
-            except:
-                time.sleep(20)
-                break
+            while True:
+                try:    
+                    articles = WebDriverWait(driver, 20).until(
+                        EC.presence_of_all_elements_located(
+                            (By.XPATH,"//article[@data-testid='tweet']")
+                        )
+                    )
+                    break
+                except TimeoutError:
+                    time.sleep(20)
 
             xpath_dict = {
                 'UserTag': ".//div[@data-testid='User-Name']",
@@ -151,9 +155,7 @@ def crawling_twitter_post(
                         break
 
                     except Exception as e:
-                        time.sleep(5)
-                
-                time.sleep(2)
+                        time.sleep(20)
 
             driver.execute_script('window.scrollBy(0,3200);')
             time.sleep(iterInterval)
@@ -166,21 +168,18 @@ def crawling_twitter_post(
                     f"Finish crawling twitter account for topic {topic}"
                 )
                 break
-
-        output = pd.DataFrame.from_dict(df, orient='index')
-        output_ = output.T
-        output_.to_csv(f"{data_dir}/{topic}.csv", index=False)
-
+        
+        write_to_file(df, f"{data_dir}/{topic}.json")
         driver.quit()
 
 
 
 if __name__ == "__main__":
 
-    df = crawling_twitter_account(
-        numIter = numIter,
-        iterInterval = iterInterval
-    )
-    df = pd.DataFrame(df)
-    df.to_csv("./data/twitter_account.csv", index=False)
+    # df = crawling_twitter_account(
+    #     numIter = numIter,
+    #     iterInterval = iterInterval
+    # )
+    # df = pd.DataFrame(df)
+    # df.to_csv("./data/twitter_account.csv", index=False)
     logger.info("Finish crawling twitter account")

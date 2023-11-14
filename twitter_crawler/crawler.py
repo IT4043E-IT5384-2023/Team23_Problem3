@@ -29,7 +29,7 @@ logger.info(f"Finish loading user password from .env file")
 
 chrome_options = Options()
 chrome_options.add_argument('--ignore-certificate-errors')
-# chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument("--headless=new")
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
@@ -88,6 +88,7 @@ def crawling_twitter_post(
                 break
             
             except Exception as e:
+                logger.info(f"Try to login again into account {user_name}.")
                 driver.quit()
                 time.sleep(20)
                 continue
@@ -118,6 +119,7 @@ def crawling_twitter_post(
                     )
                     break
                 except TimeoutError:
+                    logger.info(f"Iter {count} TimeoutError for topic {topic}")
                     time.sleep(20)
                     continue
 
@@ -134,7 +136,8 @@ def crawling_twitter_post(
             for article in articles:
                 wait = WebDriverWait(article, 5)
                 article_data = {}
-                while True:
+                run_count = 0
+                while run_count < 10:
                     try:
                         for key, xpath in xpath_dict.items():
                             information = wait.until(
@@ -158,6 +161,8 @@ def crawling_twitter_post(
                                 df[key].append(value)
                         break
                     except Exception as e:
+                        logger.info(f"Try to get infomation again for topic {topic}")
+                        run_count += 1
                         time.sleep(20)
                         continue
 
@@ -176,7 +181,7 @@ def crawling_twitter_post(
                 keep_scrolling = False
         
         write_to_file(df, f"{data_dir}/{topic}.json")
-            # driver.quit()
+        driver.quit()
 
 
 

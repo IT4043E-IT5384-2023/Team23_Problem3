@@ -10,19 +10,11 @@ import asyncio
 logger = setup_logger(__name__)
 
 numIter = NUM_ITER
-logger.info(f"Finish loading number of iteration from config file")
-
 iterInterval = ITER_INTERVAL
-logger.info(f"Finish loading iteration interval from config file")
-
 data_dir = DATA_DIR
-logger.info(f"Finish loading data directory from config file")
-
 topic = TOPIC
-logger.info(f"Finish loading topics from config file")
-
 num_threads = THREADS
-logger.info(f"Finish loading number of threads from config file")
+logger.info(f"Finish loading params from config file")
 
 URLS = []
 for t in topic:
@@ -32,22 +24,21 @@ for t in topic:
 
 async def twitter_crawler(url: Tuple[str]):
     """
-    Crawl twitter account
+    Crawl twitter post
     -------------
     Args:
         url: tuple
             Tuple of topic and url
             to crawl
-    Return:
-        None
     """
     loop = asyncio.get_event_loop()
     lock = Lock()
     await loop.run_in_executor(
-        None, crawling_twitter_account, 
+        None, crawling_twitter_post, 
         data_dir, url, numIter, 
         iterInterval, lock
     )
+
 
 async def task(url: Tuple[str]):
     """
@@ -57,8 +48,6 @@ async def task(url: Tuple[str]):
         url: tuple
             Tuple of topic and url
             to crawl
-    Return:
-        None
     """
     try:
         logger.info("task is created")
@@ -72,7 +61,6 @@ async def task(url: Tuple[str]):
 def main():
     """
     Main function to run the crawler
-    -------------
     """
     executor = ThreadPoolExecutor(num_threads)
     loop = asyncio.get_event_loop()

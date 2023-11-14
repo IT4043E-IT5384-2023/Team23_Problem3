@@ -13,9 +13,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.chrome.service import Service as ChromeService # Similar thing for firefox also!
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 
 logger = setup_logger(__name__)
 
@@ -37,22 +34,22 @@ chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 # -------------------------------------------------------------------------------------
 
-def crawling_twitter_account(
+def crawling_twitter_post(
     data_dir: str = None,
     topic_url: Tuple[str] = None,
-    # topic_url: str = None,
     numIter: int = None, 
     iterInterval: int = None,
     lock: Lock = None
 ) -> pd.DataFrame:
     """
-    Crawl twitter account
+    This function is used to crawl twitter post
+    The functionaliy is to scroll down the page and get all the posts information
     -------------
     Args:
         data_dir: str
             Data directory to save crawled data
-        topic: str or List[str]
-            Topic to crawl
+        topic: Tuple[str]
+            Tuple of topic (or person) and topic_url to crawl
         numIter: int
             Number of scroll down refreshing
         iterInterval: int
@@ -67,116 +64,117 @@ def crawling_twitter_account(
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
-        # -----------------------------------------------------------------
-        # Login
-        driver.get("https://twitter.com/login")
-        time.sleep(5)
-        username = driver.find_element(By.XPATH,"//input[@name='text']")
-        username.send_keys(Username)
-        next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
-        next_button.click()
+        # ------------------------------ Login -----------------------------------
+        while True:
+            try:
+                driver.get("https://twitter.com/login")
+                time.sleep(5)
+                username = driver.find_element(By.XPATH,"//input[@name='text']")
+                username.send_keys(Username)
+                next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
+                next_button.click()
 
-        time.sleep(5)
-        password = driver.find_element(By.XPATH,"//input[@name='password']")
-        password.send_keys(Password)
-        log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
-        log_in.click()
-        time.sleep(5)
+                time.sleep(5)
+                password = driver.find_element(By.XPATH,"//input[@name='password']")
+                password.send_keys(Password)
+                log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
+                log_in.click()
+                time.sleep(5)
+                logger.info("Login successfully.")
+                break
+            
+            except Exception as e:
+                logger.error(e)
+                driver.quit()
+                time.sleep(5)
 
-        # -----------------------------------------------------------------
-        # Crawl 
+        # ------------------------------- Crawl ----------------------------------
         topic, URL = topic_url
-        try:
-            logger.info(f"Start crawling twitter account for {topic}")
-            driver.get(URL)
-            df = {
-                'UserTag': [], 'Time': [], 
-                'Tweet': [], 'Reply': [], 
-                'reTweet': [], 'Like': [], 
-                'View': []
+        logger.info(f"Start crawling twitter account for {topic}")
+        driver.get(URL)
+        df = {
+            'UserTag': [], 'Time': [], 
+            'Tweet': [], 'Reply': [], 
+            'reTweet': [], 'Like': [], 
+            'View': []
+        }
+
+        time.sleep(5)
+        for i in range(numIter):
+            initial_scroll_position = driver.execute_script(
+                "return window.scrollY;"
+            )
+            try:    
+                articles = driver.find_elements(
+                    By.XPATH,"//article[@data-testid='tweet']"
+                )
+                
+            except:
+                time.sleep(20)
+                break
+
+            xpath_dict = {
+                'UserTag': ".//div[@data-testid='User-Name']",
+                'Time': ".//time",
+                'Tweet': ".//div[@data-testid='tweetText']",
+                'Reply': ".//div[@data-testid='reply']",
+                'reTweet': ".//div[@data-testid='retweet']",
+                'Like': ".//div[@data-testid='like']",
+                'View': ".//a[@role='link']/div/div[2]/span/span/span",
             }
-
-            time.sleep(5)
-            for i in range(numIter):
-                try:    
-                    articles = driver.find_elements(
-                        By.XPATH,"//article[@data-testid='tweet']"
-                    )
-                    
-                except:
-                    time.sleep(20)
-                    break
-
-                for article in articles:
-                    wait = WebDriverWait(article, 5)
+            check_duplicate = []
+            for article in articles:
+                wait = WebDriverWait(article, 5)
+                article_data = {}
+                while True:
                     try:
-                        UserTag = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH, ".//div[@data-testid='User-Name']")
+                        for key, xpath in xpath_dict.items():
+                            information = wait.until(
+                                EC.presence_of_element_located(
+                                    (By.XPATH, xpath)
+                                )
                             )
-                        ).text
-                        UserTag = format_string(UserTag)
-                        df['UserTag'].append(UserTag)
+                            if key == 'Time':
+                                article_data[key] = information.get_attribute('datetime')
 
-                        Time = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH, ".//time")
-                            )
-                        ).get_attribute('datetime')
-                        df['Time'].append(Time)
+                            if key == 'UserTag' or key == 'Tweet':
+                                text = information.text
+                                article_data[key] = format_string(text)
 
-                        Tweet = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH,".//div[@data-testid='tweetText']")
-                            )
-                        ).text
-                        Tweet = format_string(Tweet)
-                        df['Tweet'].append(Tweet)   
+                            article_data[key] = information.text
 
-                        Reply = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH,".//div[@data-testid='reply']")
-                            )
-                        ).text
-                        df['Reply'].append(Reply)
+                        if article_data not in check_duplicate:
+                            check_duplicate.append(article_data)
 
-                        reTweet = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH,".//div[@data-testid='retweet']")
-                            )
-                        ).text
-                        df['reTweet'].append(reTweet)
+                            for key, value in article_data.items():
+                                df[key].append(value)
 
-                        Like = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH,".//div[@data-testid='like']")
-                            )
-                        ).text
-                        df['Like'].append(Like)
-
-                        View = wait.until(EC.presence_of_element_located
-                            (
-                                (By.XPATH, ".//a[@role='link']/div/div[2]/span/span/span")
-                            )
-                        ).text
-                        df['View'].append(View)
+                        break
 
                     except Exception as e:
-                        pass
+                        logger.error(e)
+                        time.sleep(5)
+                
+                time.sleep(2)
 
-                driver.execute_script('window.scrollBy(0,3200);')
-                time.sleep(iterInterval)
+            driver.execute_script('window.scrollBy(0,3200);')
+            time.sleep(iterInterval)
+            current_scroll_position = driver.execute_script(
+                "return window.scrollY;"
+            )
 
-            output = pd.DataFrame.from_dict(df, orient='index')
-            output_ = output.T
-            output_.to_csv(f"{data_dir}/{topic}.csv", index=False)
+            if current_scroll_position == initial_scroll_position:
+                logger.info(
+                    f"Finish crawling twitter account for topic {topic}"
+                )
+                break
 
-            logger.info(f"Finish crawling twitter account for topic {topic}")
-
-        except Exception as e:
-            logger.error(e)
+        output = pd.DataFrame.from_dict(df, orient='index')
+        output_ = output.T
+        output_.to_csv(f"{data_dir}/{topic}.csv", index=False)
 
         driver.quit()
+
 
 
 if __name__ == "__main__":

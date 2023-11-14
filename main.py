@@ -1,11 +1,11 @@
 import asyncio
 from config import *
-from time import time
-from typing import Tuple
+from typing import Tuple, List
 from threading import Lock
 from twitter_crawler.crawler import *
 from utils.set_logger import setup_logger
 from concurrent.futures import ThreadPoolExecutor
+import multiprocessing as mp
 
 
 logger = setup_logger(__name__)
@@ -60,7 +60,6 @@ async def task(url: Tuple[str]):
     except Exception as e:
         logger.info(e)
 
-
 def main():
     """
     Main function to run the crawler
@@ -73,6 +72,33 @@ def main():
         t = loop.create_task(task(url))
         pool_tasks.append(t)
     loop.run_forever()
+
+# def twitter_crawler(url: Tuple[str]):
+#     """
+#     Crawl twitter post
+#     -------------
+#     Args:
+#         url: tuple
+#             Tuple of topic and url
+#             to crawl
+#     """
+#     crawling_twitter_post(
+#         data_dir, 
+#         url, numIter, 
+#         iterInterval
+#     )
+
+# def crawl_parallel(func: callable, url: List[Tuple]):
+#     p = mp.Pool(len(url))
+#     p.map(func, url)
+    
+    
+# def main():
+#     """
+#     Main function to run the crawler
+#     """
+#     crawl_parallel(twitter_crawler, URLS)
+
 
 
 if __name__ == "__main__":

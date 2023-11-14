@@ -63,7 +63,7 @@ def crawling_twitter_post(
     """
     with lock:
         driver = webdriver.Chrome(options=chrome_options)
-        username_list = Username.split(', ')
+        username_list = Username.split(',')
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
@@ -73,8 +73,8 @@ def crawling_twitter_post(
                 driver.get("https://twitter.com/login")
                 time.sleep(5)
                 username = driver.find_element(By.XPATH,"//input[@name='text']")
-                user = random.choice(username_list)
-                username.send_keys(user)
+                user_name = random.choice(username_list).strip()
+                username.send_keys(user_name)
                 next_button = driver.find_element(By.XPATH,"//span[contains(text(),'Next')]")
                 next_button.click()
 
@@ -84,12 +84,13 @@ def crawling_twitter_post(
                 log_in = driver.find_element(By.XPATH,"//span[contains(text(),'Log in')]")
                 log_in.click()
                 time.sleep(5)
-                logger.info(f"Login successfully into account {user}.")
+                logger.info(f"Login successfully into account {user_name}.")
                 break
             
             except Exception as e:
                 driver.quit()
                 time.sleep(20)
+                continue
 
         # ------------------------------- Crawl ----------------------------------
         topic, URL = topic_url
@@ -101,7 +102,10 @@ def crawling_twitter_post(
             'reTweet': [], 'Like': [], 
             'View': []
         }
-        for i in range(numIter):
+
+        keep_scrolling = True
+        count = 0
+        while keep_scrolling:
             initial_scroll_position = driver.execute_script(
                 "return window.scrollY;"
             )
@@ -115,6 +119,7 @@ def crawling_twitter_post(
                     break
                 except TimeoutError:
                     time.sleep(20)
+                    continue
 
             xpath_dict = {
                 'UserTag': ".//div[@data-testid='User-Name']",
@@ -151,14 +156,15 @@ def crawling_twitter_post(
 
                             for key, value in article_data.items():
                                 df[key].append(value)
-
                         break
-
                     except Exception as e:
                         time.sleep(20)
+                        continue
 
             driver.execute_script('window.scrollBy(0,3200);')
             time.sleep(iterInterval)
+            count += 1
+            logger.info(f"Finish crawling {count} iteration for topic {topic}")
             current_scroll_position = driver.execute_script(
                 "return window.scrollY;"
             )
@@ -167,10 +173,10 @@ def crawling_twitter_post(
                 logger.info(
                     f"Finish crawling twitter account for topic {topic}"
                 )
-                break
+                keep_scrolling = False
         
         write_to_file(df, f"{data_dir}/{topic}.json")
-        driver.quit()
+            # driver.quit()
 
 
 

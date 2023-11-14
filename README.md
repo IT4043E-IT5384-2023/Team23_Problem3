@@ -6,7 +6,7 @@
 </div>
 
 
-<!-- TABLE OF CONTENTS -->
+<!-- TABLE OF CONTENTS
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -29,7 +29,7 @@
   </ol>
 </details>
 
-
+ -->
 
 <!-- ABOUT THE REPOSITORY -->
 ## About The Repository
@@ -37,10 +37,10 @@
 This repository is used to build data crawlers and ETL processes for all the data collected.
 
 
-
+<!-- 
 ### Built With
 [![Python][Python.com]][Python-url]
-
+ -->
 
 
 <!-- GETTING STARTED -->
@@ -77,6 +77,6 @@ Install all packages mentioned in requirements.txt
    python main.py
    ```
 
-<!-- MARKDOWN LINKS & IMAGES -->
+<!-- MARKDOWN LINKS & IMAGES
 [Python.com]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://www.python.org/
+[Python-url]: https://www.python.org/ -->

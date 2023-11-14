@@ -84,7 +84,6 @@ def crawling_twitter_post(
                 break
             
             except Exception as e:
-                logger.error(e)
                 driver.quit()
                 time.sleep(5)
 
@@ -152,7 +151,6 @@ def crawling_twitter_post(
                         break
 
                     except Exception as e:
-                        logger.error(e)
                         time.sleep(5)
                 
                 time.sleep(2)

@@ -26,6 +26,7 @@ for i in range(len(username)):
         "email_password": email_pass[i].strip()
     })
 
+TOPIC = get_keywords_from_json('crypto_keywords.json')
 topic_chunk = []
 topic_chunk_size = len(TOPIC)//len(account) + 1
 for i in range(0, len(TOPIC), topic_chunk_size):
@@ -44,7 +45,9 @@ async def run_async_crawler(
     task_arr = []
     for i, acc in enumerate(account_arr):
         task = asyncio.create_task(
-            keyword_tweets_crawler(limit, topic_arr[i], acc, save_dir)
+            twitter_keyword_tweets_crawler(
+                limit, topic_arr[i], acc, save_dir
+            )
         )
         task_arr.append(task)
 

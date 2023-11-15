@@ -27,3 +27,12 @@ def save_to_file(data, filename):
             json.dump(data, f, indent=4, default=json_serial)
 
 
+def get_keywords_from_json(filename):
+    with open(filename, "r", encoding='utf-8') as f:
+        data = json.load(f)
+
+    keywords = []
+    for keyword in data['data']:
+        keywords.append(keyword["name"])
+
+    return keywords

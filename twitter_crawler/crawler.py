@@ -21,7 +21,7 @@ async def keyword_tweets_crawler(
     ):
     # Check if save_dir exists
     if not os.path.exists(save_dir):
-        print(f"Creating directory {save_dir}")
+        logger.info(f"Creating directory {save_dir}")
         os.makedirs(save_dir)
 
     api = API()
@@ -31,7 +31,7 @@ async def keyword_tweets_crawler(
     await api.pool.login_all()
 
     for keyword in tqdm(topic, total=len(topic), desc="Fetching tweets"):
-        print(f"Fetching tweets for {keyword}")
+        logger.info(f"Fetching tweets for {keyword}")
         filter = "since:2023-01-01 lang:en min_replies:5 min_faves:5 min_retweets:5"
         q = f"(#{keyword} OR ${keyword}) {filter}"
         tweets = []
@@ -42,18 +42,14 @@ async def keyword_tweets_crawler(
             tweet_count += 1
 
             if tweet_count % 1000 == 0:
-                print(f"Collected {tweet_count} tweets for {keyword}")
-
+                logger.info(f"Collected {tweet_count} tweets for {keyword}")
                 save_to_file(tweets, f"{save_dir}/twitter/{keyword}_tweets.json")
-
                 tweets = []
 
         save_to_file(tweets, f"{save_dir}/twitter/{keyword}_tweets.json")
-
-        print(f"Collected {tweet_count} tweets for {keyword}")
+        logger.info(f"Collected {tweet_count} tweets for {keyword}")
 
 
 
 if __name__ == "__main__":
-    main()
-    pass
+    asyncio.run(keyword_tweets_crawler(1000, ['bitcoin'], account[0], DATA_DIR))

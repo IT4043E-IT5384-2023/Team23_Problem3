@@ -39,9 +39,8 @@ async def run_async_crawler(
         limit=50000, 
         topic_arr: List[List] = topic_chunk,
         account_arr: List[Dict] = account, 
-        save_dir="./data"
+        save_dir=DATA_DIR
     ):
-
     task_arr = []
     for i, acc in enumerate(account_arr):
         task = asyncio.create_task(

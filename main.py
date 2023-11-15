@@ -20,10 +20,10 @@ logger.info(f"Number of accounts: {len(username)}")
 account = []
 for i in range(len(username)):
     account.append({
-        "username": username[i],
-        "password": password[i],
-        "email": email[i],
-        "email_password": email_pass[i]
+        "username": username[i].strip(),
+        "password": password[i].strip(),
+        "email": email[i].strip(),
+        "email_password": email_pass[i].strip()
     })
 
 topic_chunk = []

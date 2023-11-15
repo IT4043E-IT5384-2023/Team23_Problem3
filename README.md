@@ -66,12 +66,11 @@ Install all packages mentioned in requirements.txt
    pip install -r requirements.txt
    ```
 3. Create a .env file and configure all of the following environment variables.
-- TWITTER_USER_NAME: Username for your accounts in twitter (Ex. 'username1, username2, username3...')
-- TWITTER_USER_PASSWORD:  (Your password)
 
-Note: 
-  - All accounts must have save password
-  - Number of Threads in config.py should be approximately equal to number of accounts
+- USER_NAME: Username for your accounts in twitter (Ex. 'username1, username2, username3...')
+- PASSWORD:  Your twitter accounts password (Ex. 'pass1, pass2, pass3...')
+- EMAIL: Your email account associate with twiter accounts above (Ex. 'email1@gmail.com, email2@gmail.com, email3@gmail.com...')
+- EMAIL_PASWORD: Password of your email accounts
 
 ### Usage
 

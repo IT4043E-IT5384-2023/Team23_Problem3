@@ -14,11 +14,32 @@ from config import *
 logger = setup_logger(__name__)
 
 async def keyword_tweets_crawler(
-        limit: int, 
-        topic: List,  
-        account: Dict,  
-        save_dir: str
-    ):
+        limit: int = None, 
+        topic: List = None,  
+        account: Dict = None,  
+        save_dir: str = None
+    ) -> None:
+    """
+    Async function to crawl tweets for a given keyword
+    :param limit: Number of tweets to crawl
+    :param topic: Keyword to search
+        Example: [
+            'bitcoin', 'ethereum',
+            'dogecoin', 'bnb',
+            'binance', 'shiba',
+        ]
+
+    :param account: Account to use for crawling
+        Example: {
+            "username": "<username>",
+            "password": "<password>",
+            "email": "<email>",
+            "email_password": "<email_password>"
+        }
+        
+    :param save_dir: Directory to save the crawled tweets
+
+    """
     # Check if save_dir exists
     if not os.path.exists(save_dir):
         logger.info(f"Creating directory {save_dir}")
@@ -26,7 +47,6 @@ async def keyword_tweets_crawler(
 
     api = API()
     set_log_level("DEBUG")
-
     await api.pool.add_account(**account)
     await api.pool.login_all()
 

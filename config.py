@@ -6,11 +6,6 @@ LOG_FILE = './logs/app.log'
 # DATA
 DATA_DIR = './data'
 
-# CONFIG
-NUM_ITER = 10
-ITER_INTERVAL = 5
-THREADS = 3
-
 # TOPIC
 TOPIC = [
     'crypto', 'bitcoin', 
@@ -38,4 +33,40 @@ TOPIC = [
     'maker', 'cryptoanalysis', 
     'cryptomemes', 'cryptogaming',
     'bitcoinprice', 'ethprice',
+    'iam_preethi', 'CamiRusso',
+    'sassal0x', 'elonmusk',
+    'VitalikButerin', 'cz_binance',
+    'officialmcafee', 'aantonop',
+    'APompliano', 'brian_armstrong',
+    'rogerkver', 'gavinandresen',
+    'TimDraper', 'SatoshiLite',
+    'justinsuntron', 'IOHK_Charles',
+    'laurashin', 'haydentiff',
+    'ErikVoorhees', 'novogratz',
+    'krakenfx', 'binance',
+    'CoinDesk', 'Cointelegraph',
+    'MessariCrypto', 'cryptocom',
+    'CoinMarketCap', 'coindeskmarkets',
+    'TheBlock__', 'decryptmedia',
+    'BTCTN', 'czymez',
+    'CamiRusso', 'sassal0x',
+    'bendavenport', 'lwsnbaker',
+    'crypto_bobby', 'udiWertheimer',
+    'elonmusk', 'NickSzabo4',
+    'aantonop', 'laurashin',
+    'elonmusk', 'udiWertheimer',
+    'gavofyork', 'danheld','elonmusk', 'VitalikButerin',
+    'cz_binance', 'officialmcafee',
+    'aantonop', 'APompliano',
+    'brian_armstrong', 'rogerkver',
+    'gavinandresen', 'TimDraper',
+    'SatoshiLite', 'justinsuntron',
+    'IOHK_Charles', 'laurashin',
+    'haydentiff', 'ErikVoorhees',
+    'novogratz', 'krakenfx',
+    'binance', 'CoinDesk',
+    'Cointelegraph', 'MessariCrypto',
+    'cryptocom', 'CoinMarketCap',
+    'coindeskmarkets', 'TheBlock__',
+    'decryptmedia', 'BTCTN'
 ]

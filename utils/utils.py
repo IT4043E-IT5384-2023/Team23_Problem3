@@ -1,40 +1,30 @@
 import os
 import re
 import json
+import datetime
+from datetime import date, datetime
 
-def format_string(input_string):
-    output_string = re.sub(r'\n', ' ', input_string)
-    return output_string
+def json_serial(obj):
 
-
-def find_user_tag_from_string(input_string):
-    matches = re.findall(r'@(\S+)', input_string)
-    matches = ['@' + match for match in matches]
-    return matches
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
-def write_to_file(data: dict=None, name: str=None) -> None:
-    """
-    Function to write json data to file
-    If file does not exist, create a new one and add data to it
-    If file already have data, do nothing.
-    """
-    if not os.path.isfile(name):
-        with open(name, 'a') as file:
-            file.write(json.dumps(data))
+def save_to_file(data, filename):
+    # If the file exists, load the existing data
+    if os.path.exists(filename):
+        with open(filename, "r") as f:
+            file_data = json.load(f)
+
+        file_data.extend(data)
+
+        # Save the updated data
+        with open(filename, "w") as f:
+            json.dump(file_data, f, indent=4, default=json_serial)
+
     else:
-        print(f"File {name} already exists.")
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=4, default=json_serial)
 
 
-if __name__ == "__main__":
-
-    input_string = "This is a line.\nThis is another line.\nAnd one more line."
-
-    result = format_string(input_string)
-    print(result)
-
-        
-    input_string = 'GEMS @LADY #BSCGEM @JacksonGems9dakjlsdh sada10h'
-
-    mentions = find_user_tag_from_string(input_string)
-    print(mentions)

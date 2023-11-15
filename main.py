@@ -1,104 +1,59 @@
 import asyncio
 from config import *
 from typing import Tuple, List
-from threading import Lock
 from twitter_crawler.crawler import *
-from utils.set_logger import setup_logger
-from concurrent.futures import ThreadPoolExecutor
 import multiprocessing as mp
-
+import dotenv
+import fire
+from config import *
+from utils.set_logger import setup_logger
 
 logger = setup_logger(__name__)
+dotenv.load_dotenv()
 
-numIter = NUM_ITER
-iterInterval = ITER_INTERVAL
-data_dir = DATA_DIR
-topic = TOPIC
-num_threads = THREADS
-logger.info(f"Finish loading params from config file")
+username = os.getenv("USER_NAME").split(",")
+password = os.getenv("PASSWORD").split(',')
+email = os.getenv("EMAIL").split(',')
+email_pass = os.getenv("EMAIL_PASSWORD").split(',')
+logger.info(f"Number of accounts: {len(username)}")
 
-URLS = []
-for t in topic:
-    if t + '.json' not in os.listdir(data_dir):
-        url = f"https://twitter.com/search?q=%23{t}&src=typed_query"
-        URLS.append((t, url))
+account = []
+for i in range(len(username)):
+    account.append({
+        "username": username[i],
+        "password": password[i],
+        "email": email[i],
+        "email_password": email_pass[i]
+    })
 
-#-------------------------------------------------------------------------------------
-
-async def twitter_crawler(url: Tuple[str]):
-    """
-    Crawl twitter post
-    -------------
-    Args:
-        url: tuple
-            Tuple of topic and url
-            to crawl
-    """
-    loop = asyncio.get_event_loop()
-    lock = Lock()
-    await loop.run_in_executor(
-        None, crawling_twitter_post, 
-        data_dir, url, numIter, 
-        iterInterval, lock
+topic_chunk = []
+topic_chunk_size = len(TOPIC)//len(account) + 1
+for i in range(0, len(TOPIC), topic_chunk_size):
+    topic_chunk.append(
+        TOPIC[i:i + topic_chunk_size]
     )
 
+# -------------------------------------------------------------
 
-async def task(url: Tuple[str]):
-    """
-    Function to create asyncio task
-    -------------
-    Args:
-        url: tuple
-            Tuple of topic and url
-            to crawl
-    """
-    try:
-        logger.info("task is created")
-        await asyncio.sleep(1) # sleeps for 1s
-        title = await twitter_crawler(url)
-        logger.info(title)
-    except Exception as e:
-        logger.info(e)
+async def run_async_crawler(
+        limit=50000, 
+        topic_arr: List[List] = topic_chunk,
+        account_arr: List[Dict] = account, 
+        save_dir="./data"
+    ):
+
+    task_arr = []
+    for i, acc in enumerate(account_arr):
+        task = asyncio.create_task(
+            keyword_tweets_crawler(limit, topic_arr[i], acc, save_dir)
+        )
+        task_arr.append(task)
+
+    await asyncio.gather(*task_arr)
+
 
 def main():
-    """
-    Main function to run the crawler
-    """
-    executor = ThreadPoolExecutor(num_threads)
-    loop = asyncio.get_event_loop()
-    loop.set_default_executor(executor)
-    pool_tasks = []
-    for url in URLS:
-        t = loop.create_task(task(url))
-        pool_tasks.append(t)
-    loop.run_forever()
-
-# def twitter_crawler(url: Tuple[str]):
-#     """
-#     Crawl twitter post
-#     -------------
-#     Args:
-#         url: tuple
-#             Tuple of topic and url
-#             to crawl
-#     """
-#     crawling_twitter_post(
-#         data_dir, 
-#         url, numIter, 
-#         iterInterval
-#     )
-
-# def crawl_parallel(func: callable, url: List[Tuple]):
-#     p = mp.Pool(len(url))
-#     p.map(func, url)
-    
-    
-# def main():
-#     """
-#     Main function to run the crawler
-#     """
-#     crawl_parallel(twitter_crawler, URLS)
-
+    fire.Fire(run_async_crawler)
 
 
 if __name__ == "__main__":

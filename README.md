@@ -1,84 +1,29 @@
-<!-- PROJECT LOGO -->
-<div align="center">
-
-  <h1 align="center"><br>Twitter post by topic</br></h1>
-
-</div>
+# Evaluating Twitter accounts discussing web3 projects
 
 
-<!-- TABLE OF CONTENTS
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-repository">About The Repository</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-        <li><a href="#usage">Usage</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
+## Environment setup
 
-  </ol>
-</details>
+Create and activate a conda environment named `group23`:
 
- -->
+```sh
+conda create -n group23 --file environment.yml
+conda activate group23
+```
 
-<!-- ABOUT THE REPOSITORY -->
-## About The Repository
+## Data crawling
 
-This repository is used to build data crawlers for Twitter post by topic.
+1. Go to the directory `data_crawling`.
 
+2. Create a file named `.env` and set the following environment variables:
 
-<!-- 
-### Built With
-[![Python][Python.com]][Python-url]
- -->
+   * `USER_NAME`: Username for your accounts in twitter (Ex. `'username1, username2, username3'`)
+   * `PASSWORD`:  Your twitter accounts password (Ex. `'pass1, pass2, pass3'`)
+   * `EMAIL`: Your email account associate with twiter accounts above (Ex. `'email1@gmail.com, email2@gmail.com, email3@gmail.com'`)
+   * `EMAIL_PASWORD`: Password of your email accounts
 
+3. Configure where to save the data and log in `config.py`:
 
-<!-- GETTING STARTED -->
-## Getting Started
-
-To get a local copy up and running follow these simple example steps.
-
-### Prerequisites
-
-Install all packages mentioned in requirements.txt
-   ```sh
-   pip install -r requirements.txt
-   ```
-
-### Installation
-
-1. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Repository-Name.git
-   ```
-2. Install all packages mentioned in requirements.txt
-   ```sh
-   pip install -r requirements.txt
-   ```
-3. Create a .env file and configure all of the following environment variables.
-
-- USER_NAME: Username for your accounts in twitter (Ex. 'username1, username2, username3...')
-- PASSWORD:  Your twitter accounts password (Ex. 'pass1, pass2, pass3...')
-- EMAIL: Your email account associate with twiter accounts above (Ex. 'email1@gmail.com, email2@gmail.com, email3@gmail.com...')
-- EMAIL_PASWORD: Password of your email accounts
-
-### Usage
-
-- Run command in cmd
+4. Run the following command:
    ```sh
    python main.py
    ```
-
-<!-- MARKDOWN LINKS & IMAGES
-[Python.com]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://www.python.org/ -->

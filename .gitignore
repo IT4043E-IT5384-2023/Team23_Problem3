@@ -3,5 +3,5 @@ logs/
 *.ipynb
 __pycache__/
 .cache/
-.env
+data_crawling/.env
 *.db

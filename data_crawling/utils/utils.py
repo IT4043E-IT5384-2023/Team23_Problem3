@@ -36,3 +36,15 @@ def get_keywords_from_json(filename):
         keywords.append(keyword["name"])
 
     return keywords
+
+
+def get_user_id_from_json(file_name):
+    with open(file_name, "r", encoding='utf-8') as f:
+        data = json.load(f)
+
+    user_id = []
+    for tweet in data:
+        user_id.append(tweet['user']["id"])
+    user_id = list(set(user_id))
+    return user_id
+        

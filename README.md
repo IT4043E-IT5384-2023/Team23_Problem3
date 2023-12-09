@@ -29,4 +29,4 @@ conda activate group23
 
 ## Data preprocessing
 
-We plan to use Spark SQL to preprocess our crawled data. The file `data_analysis/main.py` currently only contains code to connect to Centic's Spark cluster and Google Cloud Storage.
+Run the notebook `data_preprocessing/main.ipynb`. The current code reads and writes data locally.

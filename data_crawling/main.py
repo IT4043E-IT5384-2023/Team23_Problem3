@@ -1,13 +1,26 @@
+import os
+import sys 
+sys.path.insert(
+    0, os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ), 
+    "..")
+)
 import asyncio
 
-from config import *
+from data_crawling.config import *
 from typing import Tuple, List
-from crawler import *
+from data_crawling.crawler import (
+    twitter_keyword_tweets_crawler,
+    twitter_user_info_crawler
+)
 
 import dotenv
 import fire
 
-from utils.set_logger import setup_logger
+from data_crawling.utils.set_logger import setup_logger
+from data_crawling.utils.directory_listener import *
 
 logger = setup_logger(__name__)
 dotenv.load_dotenv()
@@ -93,7 +106,7 @@ async def run_async_users_crawler(
 
 
 def main():
-    # fire.Fire(run_async_tweets_crawler)
+    fire.Fire(run_async_tweets_crawler)
     fire.Fire(run_async_users_crawler)
 
 

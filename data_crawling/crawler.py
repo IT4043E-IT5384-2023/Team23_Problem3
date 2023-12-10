@@ -1,11 +1,19 @@
 import os
+import sys 
+sys.path.insert(
+    0, os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ), 
+    "..")
+)
 import json
 import asyncio
 from tqdm import tqdm
 
 from config import *
-from utils.utils import *
-from utils.set_logger import setup_logger
+from data_crawling.utils.file_manipulator import *
+from data_crawling.utils.set_logger import setup_logger
 
 from typing import Dict, List
 

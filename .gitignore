@@ -3,5 +3,6 @@ logs/
 __pycache__/
 .cache/
 .env
+venv/
 *.db
 spark-warehouse/

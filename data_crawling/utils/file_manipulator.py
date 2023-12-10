@@ -1,8 +1,17 @@
 import os
+import sys 
+sys.path.insert(
+    0, os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ), 
+    "..", "..")
+)
 import re
 import json
 import datetime
 from datetime import date, datetime
+
 
 def json_serial(obj):
     if isinstance(obj, (datetime, date)):
@@ -48,3 +57,25 @@ def get_user_id_from_json(file_name):
     user_id = list(set(user_id))
     return user_id
         
+
+def extract_prefixes(file_paths):
+    arr = file_paths.split('/')
+    topic_name = arr[-1].replace('.json', '')
+    return topic_name
+
+
+if __name__ == "__main__":
+    # List of file paths
+    file_paths = [
+        "/home/quangbinh/big_data_storage/Team23_Problem3/data/raw/test/PMXX_tweets.json",
+        "/home/quangbinh/big_data_storage/Team23_Problem3/data/raw/test/GameZone_tweets.json",
+        # Add more file paths as needed
+    ]
+
+    # Call the function to extract prefixes
+    prefixes = extract_prefixes(file_paths)
+
+    # Print the extracted prefixes
+    for prefix in prefixes:
+        print(prefix)
+

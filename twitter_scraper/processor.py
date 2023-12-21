@@ -1,9 +1,24 @@
+import os
+import sys 
+sys.path.insert(
+    0, os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ), 
+    "..")
+)
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
     StructType, StructField, 
     StringType, IntegerType
 )
 from google.cloud import storage
+
+from config import (
+    TWEETS_RAW_DIR,
+    TWEETS_PROCESSED_DIR
+)
 
 
 def process_data(
@@ -23,7 +38,7 @@ def process_data(
     # Initialize Spark Session
     spark = (
         SparkSession.builder.appName(app_name).master(master)
-        .config("spark.jars", gcs_connector_jar_path)
+        # .config("spark.jars", gcs_connector_jar_path)
         .config("spark.executor.memory", executor_memory)
         .config("spark.driver.memory", driver_memory)
         .config("spark.executor.cores", executor_cores)
@@ -91,8 +106,8 @@ if __name__ == "__main__":
         worker_memory="1G",
         max_result_size="3G",
         kryo_max_buffer="1024M",
-        gcs_connector_jar_path="/opt/spark/jars/gcs-connector-latest-hadoop2.jar",
+        # gcs_connector_jar_path="/opt/spark/jars/gcs-connector-latest-hadoop2.jar",
         service_account_keyfile_path="/opt/spark/lucky-wall-393304-2a6a3df38253.json",
-        input_data_path="../data",
-        output_data_path="../data/preprocessed.parquet"
+        input_data_path=TWEETS_RAW_DIR,
+        output_data_path=TWEETS_PROCESSED_DIR
     )

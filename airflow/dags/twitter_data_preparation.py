@@ -2,7 +2,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(
-    os.path.abspath(__file__)), "..", "..", ".."))
+    os.path.abspath(__file__)), "..", ".."))
 
 from datetime import datetime, timedelta
 
@@ -18,7 +18,11 @@ default_args = {
 with DAG(
     dag_id='crawl_raw_data',
     default_args=default_args,
-    description='Crawl raw data',
+    description=(
+        'Components: '
+        '- Crawler: Get the raw data from Twitter, partitioned by topics.\n'
+        '- Processor: Using pyspark to preprocess the data.\n'
+        '- Directory listener: listen to new file from raw data directory to '
     start_date=datetime.fromtimestamp(1685433464),
     catchup=False,
     schedule_interval='10 8 * * *'

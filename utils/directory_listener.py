@@ -12,13 +12,12 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from config import (
-    TWEETS_DIR, 
-    USERS_DIR,
+    TWEETS_RAW_DIR, 
     DIR_LISTENER
 )
 
-if not os.path.exists('.'+ TWEETS_DIR):
-    os.makedirs('.'+ TWEETS_DIR)
+if not os.path.exists(TWEETS_RAW_DIR):
+    os.makedirs(TWEETS_RAW_DIR)
 
 class Watcher:
     def __init__(self, directory_to_watch):
@@ -57,7 +56,7 @@ class Handler(FileSystemEventHandler):
 
 
 def file_listener():
-    w = Watcher('.' + TWEETS_DIR)  # set the directory here
+    w = Watcher(TWEETS_RAW_DIR)  # set the directory here
     w.run()
 
 

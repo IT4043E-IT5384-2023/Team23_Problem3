@@ -11,3 +11,4 @@ webdriver-manager
 websockets
 tqdm
 watchdog
+apache-airflow==2.8.0

@@ -1,6 +1,12 @@
 import os
-import sys
-sys.path.append(__file__)
+import sys 
+sys.path.insert(
+    0, os.path.join(
+        os.path.dirname(
+            os.path.abspath(__file__)
+        ), 
+    "..")
+)
 
 import json
 import asyncio
@@ -174,7 +180,7 @@ async def run_async_tweets_crawler(
         None
     """
     TOPIC = get_keywords_from_json(
-        r'/home/code/Team23_Problem3/data_crawling/data/crypto_keywords.json'
+        r'./data/crypto_keywords.json'
     )
     topic_arr = []
     topic_chunk_size = len(TOPIC)//len(account) + 1

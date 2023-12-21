@@ -5,7 +5,7 @@ sys.path.insert(
         os.path.dirname(
             os.path.abspath(__file__)
         ), 
-    "..", "..")
+    "..")
 )
 import logging
 from config import *

@@ -5,7 +5,7 @@ sys.path.insert(
         os.path.dirname(
             os.path.abspath(__file__)
         ), 
-    "..", "..")
+    "..")
 )
 
 from kafka import KafkaConsumer
@@ -18,7 +18,7 @@ consumer = KafkaConsumer(
     enable_auto_commit=True,
 )
 
-output_dir = '/home/quangbinh/big_data_storage/Team23_Problem3/data/raw/test_consumer'
+output_dir = '/home/code/Team23_Problem3/data_crawling/data/raw/test_consumer'
 
 message_list = []
 previous_key = 'null_message'

@@ -1,11 +1,11 @@
 asyncio
 aiohttp
+twscrape
 kafka-python==2.0.2
 google-cloud-storage==2.13.0
 elasticsearch==8.11.0
 pyspark==3.5.0
 fire
-python-dotenv
 tqdm
 webdriver-manager
 websockets

@@ -5,18 +5,20 @@ sys.path.insert(
         os.path.dirname(
             os.path.abspath(__file__)
         ), 
-    "..", "..")
+    "..")
 )
 
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from data_crawling.config import (
+from config import (
     TWEETS_DIR, 
     USERS_DIR,
     DIR_LISTENER
 )
 
+if not os.path.exists('.'+ TWEETS_DIR):
+    os.makedirs('.'+ TWEETS_DIR)
 
 class Watcher:
     def __init__(self, directory_to_watch):
@@ -55,7 +57,7 @@ class Handler(FileSystemEventHandler):
 
 
 def file_listener():
-    w = Watcher(r'/home/quangbinh/big_data_storage/Team23_Problem3/data/raw/test_producer')  # set the directory here
+    w = Watcher('.' + TWEETS_DIR)  # set the directory here
     w.run()
 
 

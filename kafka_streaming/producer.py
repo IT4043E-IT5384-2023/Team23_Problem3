@@ -5,7 +5,7 @@ sys.path.insert(
         os.path.dirname(
             os.path.abspath(__file__)
         ), 
-    "..", "..")
+    "..")
 )
 from kafka import KafkaProducer
 
@@ -13,10 +13,10 @@ from datetime import datetime
 import json
 import time
 
-from data_crawling.config import DIR_LISTENER
+from config import DIR_LISTENER
 
-from data_crawling.utils.directory_listener import file_listener
-from data_crawling.utils.file_manipulator import extract_prefixes
+from utils.directory_listener import file_listener
+from utils.file_manipulator import extract_prefixes
 
 
 producer = KafkaProducer(

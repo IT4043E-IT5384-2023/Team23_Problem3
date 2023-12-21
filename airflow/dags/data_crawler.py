@@ -10,7 +10,7 @@ from airflow import DAG
 from airflow.decorators import task
 
 default_args = {
-    'owner': 'tiennh',
+    'owner': 'binh.truong',
     'retries': 0,
     'retry_delay': timedelta(minutes=10)
 }

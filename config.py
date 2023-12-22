@@ -1,13 +1,17 @@
-# LOGGER
+# logger
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - line %(lineno)d - %(message)s"
-LOG_DIR = '/home/code/Team23_Problem3/logs'
-LOG_FILE = '/home/code/Team23_Problem3/logs/crawler.log'
+LOG_DIR = 'logs'
+LOG_FILE = 'logs/crawler.log'
 
-# DATA
-TWEETS_RAW_DIR = '/home/code/Team23_Problem3/data/raw/tweets'
-# USERS_DIR = './data/raw/users'
-TWEETS_PROCESSED_DIR = '/home/code/Team23_Problem3/data/tweets'
+# our crawled data (unlabeled)
+CRYPTO_KEYWORDS_JSON = 'data/ours/crypto_keywords.json'
+OUR_RAW_TWEETS_DIR = 'data/ours/raw/tweets'
+OUR_RAW_USERS_DIR = 'data/ours/raw/users'
+OUR_PREPROCESSED_DIR = 'data/ours/preprocessed'
 
+# labeled data for training and testing bot detection model
+BOT_REPOSITORY_RAW_DIR = 'data/bot_repository/raw'
+BOT_REPOSITORY_PREPROCESSED_DIR = 'data/bot_repository/preprocessed'
 
-# LISTENER
-DIR_LISTENER = '/home/code/Team23_Problem3/data/new_files.txt'
+# listener
+DIR_LISTENER = 'data/new_files.txt'

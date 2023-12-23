@@ -165,7 +165,7 @@ async def twitter_user_info_crawler(
 async def run_async_tweets_crawler(
     limit=50000, 
     account_arr: List[Dict] = account, 
-    save_dir=TWEETS_DIR
+    save_dir=OUR_RAW_TWEETS_DIR
 ):
     """
     Function to run async tweets crawler function.
@@ -179,9 +179,7 @@ async def run_async_tweets_crawler(
     Returns:
         None
     """
-    TOPIC = get_keywords_from_json(
-        r'./data/crypto_keywords.json'
-    )
+    TOPIC = get_keywords_from_json(CRYPTO_KEYWORDS_JSON)
     topic_arr = []
     topic_chunk_size = len(TOPIC)//len(account) + 1
 
@@ -207,7 +205,8 @@ async def run_async_tweets_crawler(
 async def run_async_users_crawler(
     limit=50000, 
     account_arr: List[Dict] = account, 
-    save_dir=USERS_DIR
+    tweet_dir=OUR_RAW_TWEETS_DIR,
+    save_dir=OUR_RAW_USERS_DIR
 ):
     """
     Function to run async tweets crawler function.
@@ -217,19 +216,20 @@ async def run_async_users_crawler(
         :param limit: number of tweets to crawl
         :param account_arr: a ductionary contains .env variable 
                             of each account username and password
-        :param save_dir: Directory to save raw data
+        :param tweet_dir: Directory of raw tweets data
+        :param save_dir: Directory to save raw user data
     Returns:
         None
     """
-    for tweet_file in os.listdir(TWEETS_DIR):
+    for tweet_file in os.listdir(tweet_dir):
         tweet_folder = os.path.join(
-            USERS_DIR, tweet_file.replace(".json", "")
+            save_dir, tweet_file.replace(".json", "")
         )
         if not os.path.exists(tweet_folder):
             os.makedirs(tweet_folder)
 
         user_id = get_user_id_from_json(
-            os.path.join(TWEETS_DIR, tweet_file)
+            os.path.join(tweet_dir, tweet_file)
         )
         user_id_arr = []
         user_chunk_size = len(user_id)//len(account) + 1
@@ -251,7 +251,7 @@ async def run_async_users_crawler(
 
 def main():
     fire.Fire(run_async_tweets_crawler)
-    # fire.Fire(run_async_users_crawler)
+    fire.Fire(run_async_users_crawler)
 
 
 if __name__ == "__main__":

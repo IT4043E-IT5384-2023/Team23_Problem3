@@ -23,31 +23,31 @@ def preprocess_our_data(
     Extract features from our raw crawled tweet data and save in parquet format.
     """
 
-    # Read raw data
+    print(f'Preproccesing crawled data at {input_data_path}...')
     df_tweets = spark.read.option("multiline", True).json(input_data_path)
-    df_tweets.createOrReplaceTempView("tweet")
+    df_tweets.createTempView("tweet")
 
-    # Extract features
     df_user_features = spark.sql("""
     SELECT DISTINCT
-        user.id_str as id,
-        user.username as screen_name,
-        user.displayname as name,
-        user.statusesCount as statuses_count,
-        user.followersCount as followers_count,
-        user.friendsCount as friends_count,
-        user.favouritesCount as favourites_count,
-        user.listedCount as listed_count,
-        user.profileImageUrl IS NULL as default_profile,
-        user.profileBannerUrl IS NOT NULL as profile_use_background_image,
-        user.verified as verified,
-        cast((unix_timestamp(to_timestamp(date)) - unix_timestamp(to_timestamp(user.created))) / 3600 as float) as user_age,
-        LEN(user.rawDescription) as description_length
+        user.id_str AS id,
+        user.username AS screen_name,
+        user.displayname AS name,
+        user.statusesCount AS statuses_count,
+        user.followersCount AS followers_count,
+        user.friendsCount AS friends_count,
+        user.favouritesCount AS favourites_count,
+        user.listedCount AS listed_count,
+        user.profileImageUrl IS NULL AS default_profile,
+        user.profileBannerUrl IS NOT NULL AS profile_use_background_image,
+        user.verified AS verified,
+        cast((unix_timestamp(to_timestamp(date)) - unix_timestamp(to_timestamp(user.created))) / 3600 AS float) AS user_age,
+        LEN(user.rawDescription) AS description_length
     FROM tweet
     """)
 
-    # Save features in parquet format
-    df_user_features.write.parquet(output_data_path, mode="overwrite")    
+    df_user_features.write.parquet(output_data_path)
+
+    print(f'Preprocessed data saved at {output_data_path}')  
 
 
 if __name__ == "__main__":

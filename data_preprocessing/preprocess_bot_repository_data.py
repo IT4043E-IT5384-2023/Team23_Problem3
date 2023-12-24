@@ -1,4 +1,5 @@
 from functools import reduce
+from datetime import datetime
 import os
 import sys 
 sys.path.insert(
@@ -10,9 +11,24 @@ sys.path.insert(
 )
 
 from pyspark.sql import SparkSession
+from pyspark.sql.types import FloatType
 
 from config import BOT_REPOSITORY_RAW_DIR, BOT_REPOSITORY_PREPROCESSED_DIR
 from create_spark import create_spark
+
+
+def hour_diff(end_time_str: str,
+              start_time_str: str,
+              time_format: str='%a %b %d %H:%M:%S %z %Y'
+) -> float:
+    """
+    Calculate the difference between two timestamps in hours.
+    The default time format is 'Fri Dec 07 13:57:04 +0000 2007'.
+    """
+
+    end_time = datetime.strptime(end_time_str, time_format)
+    start_time = datetime.strptime(start_time_str, time_format)
+    return (end_time - start_time).total_seconds() / 3600
 
 
 def preprocess_bot_repository_data( 
@@ -36,49 +52,55 @@ def preprocess_bot_repository_data(
 
     df_train_list, df_test_list = [], []
 
+    spark.udf.register("hour_diff", hour_diff, FloatType())
+
     for dataset in cresci2017_fake_followers_datasets:
         print(f'Preproccesing {dataset}...')
-        df_tweets = spark.read.csv(
+        df_tweets_1 = spark.read.csv(
             os.path.join(bot_repository_raw_path, 'cresci-2017.csv', dataset, 'tweets.csv'),
             header=True,
             inferSchema=True
         )
-        df_users = spark.read.option("header", True).csv(
+        df_users_1 = spark.read.option("header", True).csv(
             os.path.join(bot_repository_raw_path, 'cresci-2017.csv', dataset, 'users.csv'),
             header=True,
             inferSchema=True
         )
-        df_tweets.createOrReplaceTempView("tweet1")
-        df_users.createOrReplaceTempView("user1")
-        df_train_list.append(spark.sql("""
-        SELECT
-            user1.id,
-            name,
-            screen_name,
-            statuses_count,
-            followers_count,
-            friends_count,
-            favourites_count,
-            listed_count,
-            default_profile IS NOT NULL,
-            profile_use_background_image IS NOT NULL,
-            verified IS NOT NULL,
-            cast((unix_timestamp(to_timestamp(timestamp)) - unix_timestamp(to_timestamp(user1.created_at))) / 3600 AS float) AS user_age,
-            LEN(description) AS description_length,
-            True as bot
-        FROM
-            tweet1
-            INNER JOIN user1 ON (tweet1.user_id = user1.id)
-        """))
+        df_tweets_1.createOrReplaceTempView("tweet1")
+        df_users_1.createOrReplaceTempView("user1")
+        df_train_list.append(
+            spark.sql(
+                """
+                SELECT
+                    user1.id,
+                    name,
+                    screen_name,
+                    statuses_count,
+                    followers_count,
+                    friends_count,
+                    favourites_count,
+                    listed_count,
+                    default_profile IS NOT NULL as default_profile,
+                    profile_use_background_image IS NOT NULL as profile_use_background_image,
+                    verified IS NOT NULL as verified,
+                    hour_diff(tweet1.created_at, user1.created_at) AS user_age,
+                    LEN(description) AS description_length,
+                    True as bot
+                FROM
+                    tweet1
+                    INNER JOIN user1 ON (tweet1.user_id = user1.id)
+                """
+            )
+        )
 
     for dataset in cresci2017_other_bot_datasets:
         print(f'Preproccesing {dataset}...')
-        df_users = spark.read.csv(
+        df_users_2 = spark.read.csv(
             os.path.join(bot_repository_raw_path, 'cresci-2017.csv', dataset, 'users.csv'),
             header=True,
             inferSchema=True
         )
-        df_users.createOrReplaceTempView("user2")
+        df_users_2.createOrReplaceTempView("user2")
         df_train_list.append(spark.sql("""
         SELECT
             id,
@@ -89,10 +111,10 @@ def preprocess_bot_repository_data(
             friends_count,
             favourites_count,
             listed_count,
-            default_profile IS NOT NULL,
-            profile_use_background_image IS NOT NULL,
-            verified IS NOT NULL,
-            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(created_at))) / 3600 AS float) AS user_age,
+            default_profile IS NOT NULL as default_profile,
+            profile_use_background_image IS NOT NULL as profile_use_background_image,
+            verified IS NOT NULL as verified,
+            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(timestamp))) / 3600 AS float) AS user_age,
             LEN(description) AS description_length,
             True as bot
         FROM user2
@@ -100,12 +122,12 @@ def preprocess_bot_repository_data(
 
     for dataset in cresci2017_human_datasets:
         print(f'Preproccesing {dataset}...')
-        df_users = spark.read.csv(
+        df_users_3 = spark.read.csv(
             os.path.join(bot_repository_raw_path, 'cresci-2017.csv', dataset, 'users.csv'),
             header=True,
             inferSchema=True
         )
-        df_users.createOrReplaceTempView("user3")
+        df_users_3.createOrReplaceTempView("user3")
         df_train_list.append(spark.sql("""
         SELECT
             id,
@@ -116,10 +138,10 @@ def preprocess_bot_repository_data(
             friends_count,
             favourites_count,
             listed_count,
-            default_profile IS NOT NULL,
-            profile_use_background_image IS NOT NULL,
-            verified IS NOT NULL,
-            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(created_at))) / 3600 AS float) AS user_age,
+            default_profile IS NOT NULL as default_profile,
+            profile_use_background_image IS NOT NULL as profile_use_background_image,
+            verified IS NOT NULL as verified,
+            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(timestamp))) / 3600 AS float) AS user_age,
             LEN(description) AS description_length,
             False as bot
         FROM user3
@@ -127,20 +149,20 @@ def preprocess_bot_repository_data(
     
     for dataset in midterm2018_datasets:
         print(f'Preproccesing {dataset}...')
-        df_users = spark.read.json(
+        df_users_4 = spark.read.json(
             os.path.join(bot_repository_raw_path, dataset, f'{dataset}_processed_user_objects.json')
         )
-        df_user_labels = spark.read.csv(
+        df_user_labels_4 = spark.read.csv(
             os.path.join(bot_repository_raw_path, dataset, f'{dataset}.tsv'),
             header=False,
-            schema='id STRING, label STRING',
+            schema='user_id STRING, label STRING',
             sep='\t'
         )
-        df_users.createOrReplaceTempView("user4")
-        df_user_labels.createOrReplaceTempView("user_label_4")
+        df_users_4.createOrReplaceTempView("user4")
+        df_user_labels_4.createOrReplaceTempView("user_label_4")
         df_test_list.append(spark.sql("""
         SELECT
-            user_label_4.id AS id,
+            user_label_4.user_id AS id,
             name,
             screen_name,
             statuses_count,
@@ -151,27 +173,27 @@ def preprocess_bot_repository_data(
             default_profile,
             profile_use_background_image,
             verified,
-            cast((unix_timestamp(to_timestamp(probe_timestamp)) - unix_timestamp(to_timestamp(user_created_at))) / 3600 AS float) AS user_age,
+            hour_diff(probe_timestamp, user_created_at, '%a %b %d %H:%M:%S %Y') AS user_age,
             LEN(description) AS description_length,
             label = 'bot' AS bot
         FROM
             user4
-            INNER JOIN user_label_4 ON (CAST(user4.user_id AS STRING) = user_label_4.id)
+            INNER JOIN user_label_4 ON (CAST(user4.user_id AS STRING) = user_label_4.user_id)
         """))
     
     for dataset in other_datasets_train:
         print(f'Preproccesing {dataset}...')
-        df_tweets = spark.read.json(
+        df_tweets_5 = spark.read.json(
             os.path.join(bot_repository_raw_path, dataset, f'{dataset}_tweets.json')
         )
-        df_user_labels = spark.read.csv(
+        df_user_labels_5 = spark.read.csv(
             os.path.join(bot_repository_raw_path, dataset, f'{dataset}.tsv'),
             header=False,
             schema='id STRING, label STRING',
             sep='\t'
         )
-        df_tweets.createOrReplaceTempView("tweet5")
-        df_user_labels.createOrReplaceTempView("user_label_5")
+        df_tweets_5.createOrReplaceTempView("tweet5")
+        df_user_labels_5.createOrReplaceTempView("user_label_5")
         df_train_list.append(spark.sql("""
         SELECT
             tweet5.user.id_str AS id,
@@ -185,47 +207,47 @@ def preprocess_bot_repository_data(
             user.default_profile,
             user.profile_use_background_image,
             user.verified,
-            cast((unix_timestamp(to_timestamp(created_at)) - unix_timestamp(to_timestamp(user.created_at))) / 3600 AS float) AS user_age,
+            hour_diff(created_at, user.created_at) AS user_age,
             LEN(user.description) AS description_length,
             user_label_5.label = 'bot' AS bot
         FROM
             tweet5
-            INNER JOIN user_label_5 ON (tweet5.user.id = user_label_5.id)
+            INNER JOIN user_label_5 ON (tweet5.user.id_str = user_label_5.id)
         """))
 
-        for dataset in other_datasets_test:
-            print(f'Preproccesing {dataset}...')
-            df_tweets = spark.read.json(
-                os.path.join(bot_repository_raw_path, dataset, f'{dataset}_tweets.json')
-            )
-            df_user_labels = spark.read.csv(
-                os.path.join(bot_repository_raw_path, dataset, f'{dataset}.tsv'),
-                header=False,
-                schema='id STRING, label STRING',
-                sep='\t'
-            )
-            df_tweets.createOrReplaceTempView("tweet6")
-            df_user_labels.createOrReplaceTempView("user_label_6")
-            df_test_list.append(spark.sql("""
-            SELECT
-                tweet6.user.id_str AS id,
-                user.name AS name,
-                user.screen_name,
-                user.statuses_count,
-                user.followers_count,
-                user.friends_count,
-                user.favourites_count,
-                user.listed_count,
-                user.default_profile,
-                user.profile_use_background_image,
-                user.verified,
-                cast((unix_timestamp(to_timestamp(created_at)) - unix_timestamp(to_timestamp(user.created_at))) / 3600 AS float) AS user_age,
-                LEN(user.description) AS description_length,
-                user_label_6.label = 'bot' AS bot
-            FROM
-                tweet6
-                INNER JOIN user_label_6 ON (tweet6.user.id = user_label_6.id)
-            """))
+    for dataset in other_datasets_test:
+        print(f'Preproccesing {dataset}...')
+        df_tweets_6 = spark.read.json(
+            os.path.join(bot_repository_raw_path, dataset, f'{dataset}_tweets.json')
+        )
+        df_user_labels_6 = spark.read.csv(
+            os.path.join(bot_repository_raw_path, dataset, f'{dataset}.tsv'),
+            header=False,
+            schema='id STRING, label STRING',
+            sep='\t'
+        )
+        df_tweets_6.createOrReplaceTempView("tweet6")
+        df_user_labels_6.createOrReplaceTempView("user_label_6")
+        df_test_list.append(spark.sql("""
+        SELECT
+            tweet6.user.id_str AS id,
+            user.name AS name,
+            user.screen_name,
+            user.statuses_count,
+            user.followers_count,
+            user.friends_count,
+            user.favourites_count,
+            user.listed_count,
+            user.default_profile,
+            user.profile_use_background_image,
+            user.verified,
+            hour_diff(created_at, user.created_at) AS user_age,
+            LEN(user.description) AS description_length,
+            user_label_6.label = 'bot' AS bot
+        FROM
+            tweet6
+            INNER JOIN user_label_6 ON (tweet6.user.id_str = user_label_6.id)
+        """))
     
     df_train = reduce(lambda x, y: x.unionAll(y), df_train_list)
     df_test = reduce(lambda x, y: x.unionAll(y), df_test_list)
@@ -239,7 +261,7 @@ def preprocess_bot_repository_data(
 if __name__ == "__main__":
 
     spark = create_spark(
-        app_name="preprocess-our-data",
+        app_name="preprocess-bot-repository-data",
         master="local",
         executor_memory="1G",
         driver_memory="1G",
@@ -259,10 +281,12 @@ if __name__ == "__main__":
 
     # check the output
     df_train = spark.read.parquet(os.path.join(BOT_REPOSITORY_PREPROCESSED_DIR, 'train'))
-    print('Training data:')
+    print('\nTraining data:')
     df_train.show()
+    print(df_train.count(), 'rows')
     df_test = spark.read.parquet(os.path.join(BOT_REPOSITORY_PREPROCESSED_DIR, 'test'))
-    print('Testing data:')
+    print('\nTesting data:')
     df_test.show()
+    print(df_test.count(), 'rows')
 
     spark.stop()

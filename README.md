@@ -34,7 +34,7 @@ There are two datasets to preprocess:
 
    * the data we crawl using the process above, which has no bot/human label
 
-   * data from [BotRepository](https://botometer.osome.iu.edu/bot-repository/datasets.html) with a human/bot label for each Twitter account, which we're going to use for training and testing our bot detection model (preprocessing code upcoming)
+   * data from [BotRepository](https://botometer.osome.iu.edu/bot-repository/datasets.html) with a human/bot label for each Twitter account, which we're going to use for training and testing our bot detection model
 
 To run a data preprocessing job:
 

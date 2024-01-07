@@ -6,7 +6,7 @@
 Create and activate a conda environment named, for example, `group23` with the dependencies specified in the file `environment.yml`:
 
 ```sh
-conda create -n group23 --file environment.yml
+conda env create -n group23 --file environment.yml
 conda activate group23
 ```
 
@@ -38,6 +38,17 @@ There are two datasets to preprocess:
 
 To run a data preprocessing job:
 
-   1. Configure input and output locations in the file `config.py`. The current code reads and writes data locally.
+   1. Configure input and output locations in the file `config.py`
 
-   2. Run the file `data_preprocessing/preprocess_our_data.py` or `data_preprocessing/preprocess_bot_repository_data.py`.
+   2. Run the script `data_preprocessing/preprocess_our_data.py` or `data_preprocessing/preprocess_bot_repository_data.py`.
+
+
+## Data analysis
+
+Following the paper "[Scalable and Generalizable Social Bot Detection through Data Selection (Yang et al., 2020)](https://ojs.aaai.org/index.php/AAAI/article/view/5460)", we implement a random forest using 19 account metadata features to predict whether the account is a human or bot account. A trained model is available at `bot_detection_model/model_storage`.
+
+To use the trained bot detection model on crawled tweets:
+
+1. Configure the preprocessed data location and model output ((id, prediction) rows in parquet format) location in the file `config.py`.
+
+2. Run the script `bot_detection_model/detect_bot.py`

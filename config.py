@@ -15,3 +15,6 @@ BOT_REPOSITORY_PREPROCESSED_DIR = 'data/bot_repository/preprocessed'
 
 # listener
 DIR_LISTENER = 'data/new_files.txt'
+
+# bot detection output
+BOT_DETECTION_OUTPUT_DIR = 'data/ours/predictions'

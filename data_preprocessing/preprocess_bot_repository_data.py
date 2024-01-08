@@ -14,7 +14,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import FloatType
 
 from config import BOT_REPOSITORY_RAW_DIR, BOT_REPOSITORY_PREPROCESSED_DIR
-from create_spark import create_spark
+from utils.create_spark import create_spark
 
 
 def hour_diff(end_time_str: str,
@@ -69,28 +69,36 @@ def preprocess_bot_repository_data(
         df_tweets_1.createOrReplaceTempView("tweet1")
         df_users_1.createOrReplaceTempView("user1")
         df_train_list.append(
-            spark.sql(
-                """
+            spark.sql("""
                 SELECT
-                    user1.id,
-                    name,
+                    user1.id AS id,
                     screen_name,
+                    hour_diff(tweet1.created_at, user1.created_at) AS user_age,
                     statuses_count,
                     followers_count,
                     friends_count,
                     favourites_count,
                     listed_count,
-                    default_profile IS NOT NULL as default_profile,
-                    profile_use_background_image IS NOT NULL as profile_use_background_image,
-                    verified IS NOT NULL as verified,
-                    hour_diff(tweet1.created_at, user1.created_at) AS user_age,
-                    LEN(description) AS description_length,
-                    True as bot
+                    default_profile IS NOT NULL AS default_profile,
+                    profile_use_background_image IS NOT NULL AS profile_use_background_image,
+                    verified IS NOT NULL AS verified,
+                    statuses_count / user_age AS tweet_freq,
+                    followers_count / user_age AS followers_growth_rate,
+                    friends_count / user_age AS friends_growth_rate,
+                    favourites_count / user_age AS favourites_growth_rate,
+                    listed_count / user_age AS listed_growth_rate,
+                    followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                    LEN(screen_name) AS screen_name_length,
+                    LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                    IFNULL(LEN(name), 0) AS name_length,
+                    IFNULL(LEN(REGEXP_REPLACE(name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                    IFNULL(LEN(description), 0) AS description_length,
+                    1.0 AS bot
                 FROM
                     tweet1
                     INNER JOIN user1 ON (tweet1.user_id = user1.id)
-                """
-            )
+                WHERE hour_diff(tweet1.created_at, user1.created_at) IS NOT NULL
+            """)
         )
 
     for dataset in cresci2017_other_bot_datasets:
@@ -102,22 +110,32 @@ def preprocess_bot_repository_data(
         )
         df_users_2.createOrReplaceTempView("user2")
         df_train_list.append(spark.sql("""
-        SELECT
-            id,
-            name,
-            screen_name,
-            statuses_count,
-            followers_count,
-            friends_count,
-            favourites_count,
-            listed_count,
-            default_profile IS NOT NULL as default_profile,
-            profile_use_background_image IS NOT NULL as profile_use_background_image,
-            verified IS NOT NULL as verified,
-            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(timestamp))) / 3600 AS float) AS user_age,
-            LEN(description) AS description_length,
-            True as bot
-        FROM user2
+            SELECT
+                id,
+                screen_name,
+                CAST((UNIX_TIMESTAMP(TO_TIMESTAMP(crawled_at)) - UNIX_TIMESTAMP(TO_TIMESTAMP(timestamp))) / 3600 AS FLOAT) AS user_age,
+                statuses_count,
+                followers_count,
+                friends_count,
+                favourites_count,
+                listed_count,
+                default_profile IS NOT NULL AS default_profile,
+                profile_use_background_image IS NOT NULL AS profile_use_background_image,
+                verified IS NOT NULL AS verified,
+                statuses_count / user_age AS tweet_freq,
+                followers_count / user_age AS followers_growth_rate,
+                friends_count / user_age AS friends_growth_rate,
+                favourites_count / user_age AS favourites_growth_rate,
+                listed_count / user_age AS listed_growth_rate,
+                followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                LEN(screen_name) AS screen_name_length,
+                LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                IFNULL(LEN(name), 0) AS name_length,
+                IFNULL(LEN(REGEXP_REPLACE(name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                IFNULL(LEN(description), 0) AS description_length,
+                1.0 AS bot
+            FROM user2
+            WHERE CAST((UNIX_TIMESTAMP(TO_TIMESTAMP(crawled_at)) - UNIX_TIMESTAMP(TO_TIMESTAMP(timestamp))) / 3600 AS FLOAT) IS NOT NULL
         """))
 
     for dataset in cresci2017_human_datasets:
@@ -129,22 +147,32 @@ def preprocess_bot_repository_data(
         )
         df_users_3.createOrReplaceTempView("user3")
         df_train_list.append(spark.sql("""
-        SELECT
-            id,
-            name,
-            screen_name,
-            statuses_count,
-            followers_count,
-            friends_count,
-            favourites_count,
-            listed_count,
-            default_profile IS NOT NULL as default_profile,
-            profile_use_background_image IS NOT NULL as profile_use_background_image,
-            verified IS NOT NULL as verified,
-            cast((unix_timestamp(to_timestamp(crawled_at)) - unix_timestamp(to_timestamp(timestamp))) / 3600 AS float) AS user_age,
-            LEN(description) AS description_length,
-            False as bot
-        FROM user3
+            SELECT
+                id,
+                screen_name,
+                CAST((UNIX_TIMESTAMP(TO_TIMESTAMP(crawled_at)) - UNIX_TIMESTAMP(TO_TIMESTAMP(timestamp))) / 3600 AS FLOAT) AS user_age,
+                statuses_count,
+                followers_count,
+                friends_count,
+                favourites_count,
+                listed_count,
+                default_profile IS NOT NULL AS default_profile,
+                profile_use_background_image IS NOT NULL AS profile_use_background_image,
+                verified IS NOT NULL AS verified,
+                statuses_count / user_age AS tweet_freq,
+                followers_count / user_age AS followers_growth_rate,
+                friends_count / user_age AS friends_growth_rate,
+                favourites_count / user_age AS favourites_growth_rate,
+                listed_count / user_age AS listed_growth_rate,
+                followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                LEN(screen_name) AS screen_name_length,
+                LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                IFNULL(LEN(name), 0) AS name_length,
+                IFNULL(LEN(REGEXP_REPLACE(name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                IFNULL(LEN(description), 0) AS description_length,
+                0.0 AS bot
+            FROM user3
+            WHERE CAST((UNIX_TIMESTAMP(TO_TIMESTAMP(crawled_at)) - UNIX_TIMESTAMP(TO_TIMESTAMP(timestamp))) / 3600 AS FLOAT) IS NOT NULL
         """))
     
     for dataset in midterm2018_datasets:
@@ -161,24 +189,34 @@ def preprocess_bot_repository_data(
         df_users_4.createOrReplaceTempView("user4")
         df_user_labels_4.createOrReplaceTempView("user_label_4")
         df_test_list.append(spark.sql("""
-        SELECT
-            user_label_4.user_id AS id,
-            name,
-            screen_name,
-            statuses_count,
-            followers_count,
-            friends_count,
-            favourites_count,
-            listed_count,
-            default_profile,
-            profile_use_background_image,
-            verified,
-            hour_diff(probe_timestamp, user_created_at, '%a %b %d %H:%M:%S %Y') AS user_age,
-            LEN(description) AS description_length,
-            label = 'bot' AS bot
-        FROM
-            user4
-            INNER JOIN user_label_4 ON (CAST(user4.user_id AS STRING) = user_label_4.user_id)
+            SELECT
+                user_label_4.user_id AS id,
+                screen_name,
+                hour_diff(probe_timestamp, user_created_at, '%a %b %d %H:%M:%S %Y') AS user_age,
+                statuses_count,
+                followers_count,
+                friends_count,
+                favourites_count,
+                listed_count,
+                default_profile,
+                profile_use_background_image,
+                verified,
+                statuses_count / user_age AS tweet_freq,
+                followers_count / user_age AS followers_growth_rate,
+                friends_count / user_age AS friends_growth_rate,
+                favourites_count / user_age AS favourites_growth_rate,
+                listed_count / user_age AS listed_growth_rate,
+                followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                LEN(screen_name) AS screen_name_length,
+                LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                IFNULL(LEN(name), 0) AS name_length,
+                IFNULL(LEN(REGEXP_REPLACE(name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                IFNULL(LEN(description), 0) AS description_length,
+                CAST(label = 'bot' AS DOUBLE) AS bot
+            FROM
+                user4
+                INNER JOIN user_label_4 ON (CAST(user4.user_id AS STRING) = user_label_4.user_id)
+            WHERE hour_diff(probe_timestamp, user_created_at, '%a %b %d %H:%M:%S %Y') IS NOT NULL
         """))
     
     for dataset in other_datasets_train:
@@ -195,24 +233,34 @@ def preprocess_bot_repository_data(
         df_tweets_5.createOrReplaceTempView("tweet5")
         df_user_labels_5.createOrReplaceTempView("user_label_5")
         df_train_list.append(spark.sql("""
-        SELECT
-            tweet5.user.id_str AS id,
-            user.name AS name,
-            user.screen_name,
-            user.statuses_count,
-            user.followers_count,
-            user.friends_count,
-            user.favourites_count,
-            user.listed_count,
-            user.default_profile,
-            user.profile_use_background_image,
-            user.verified,
-            hour_diff(created_at, user.created_at) AS user_age,
-            LEN(user.description) AS description_length,
-            user_label_5.label = 'bot' AS bot
-        FROM
-            tweet5
-            INNER JOIN user_label_5 ON (tweet5.user.id_str = user_label_5.id)
+            SELECT
+                tweet5.user.id_str AS id,
+                user.screen_name AS screen_name,
+                hour_diff(created_at, user.created_at) AS user_age,
+                user.statuses_count AS statuses_count,
+                user.followers_count AS followers_count,
+                user.friends_count AS friends_count,
+                user.favourites_count AS favourites_count,
+                user.listed_count AS listed_count,
+                user.default_profile AS default_profile,
+                user.profile_use_background_image AS profile_use_background_image,
+                user.verified AS verified,
+                statuses_count / user_age AS tweet_freq,
+                followers_count / user_age AS followers_growth_rate,
+                friends_count / user_age AS friends_growth_rate,
+                favourites_count / user_age AS favourites_growth_rate,
+                listed_count / user_age AS listed_growth_rate,
+                followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                LEN(screen_name) AS screen_name_length,
+                LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                IFNULL(LEN(user.name), 0) AS name_length,
+                IFNULL(LEN(REGEXP_REPLACE(user.name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                IFNULL(LEN(user.description), 0) AS description_length,
+                CAST(user_label_5.label = 'bot' AS DOUBLE) AS bot
+            FROM
+                tweet5
+                INNER JOIN user_label_5 ON (tweet5.user.id_str = user_label_5.id)
+            WHERE hour_diff(created_at, user.created_at) IS NOT NULL
         """))
 
     for dataset in other_datasets_test:
@@ -229,31 +277,41 @@ def preprocess_bot_repository_data(
         df_tweets_6.createOrReplaceTempView("tweet6")
         df_user_labels_6.createOrReplaceTempView("user_label_6")
         df_test_list.append(spark.sql("""
-        SELECT
-            tweet6.user.id_str AS id,
-            user.name AS name,
-            user.screen_name,
-            user.statuses_count,
-            user.followers_count,
-            user.friends_count,
-            user.favourites_count,
-            user.listed_count,
-            user.default_profile,
-            user.profile_use_background_image,
-            user.verified,
-            hour_diff(created_at, user.created_at) AS user_age,
-            LEN(user.description) AS description_length,
-            user_label_6.label = 'bot' AS bot
-        FROM
-            tweet6
-            INNER JOIN user_label_6 ON (tweet6.user.id_str = user_label_6.id)
+            SELECT
+                tweet6.user.id_str AS id,
+                user.screen_name AS screen_name,
+                hour_diff(created_at, user.created_at) AS user_age,
+                user.statuses_count AS statuses_count,
+                user.followers_count AS followers_count,
+                user.friends_count AS friends_count,
+                user.favourites_count AS favourites_count,
+                user.listed_count AS listed_count,
+                user.default_profile AS default_profile,
+                user.profile_use_background_image AS profile_use_background_image,
+                user.verified AS verified,
+                statuses_count / user_age AS tweet_freq,
+                followers_count / user_age AS followers_growth_rate,
+                friends_count / user_age AS friends_growth_rate,
+                favourites_count / user_age AS favourites_growth_rate,
+                listed_count / user_age AS listed_growth_rate,
+                followers_count / GREATEST(friends_count, 1) AS followers_friends_ratio,
+                LEN(screen_name) AS screen_name_length,
+                LEN(REGEXP_REPLACE(screen_name, '[^0-9]', '')) AS num_digits_in_screen_name,
+                IFNULL(LEN(user.name), 0) AS name_length,
+                IFNULL(LEN(REGEXP_REPLACE(user.name, '[^0-9]', '')), 0) AS num_digits_in_name,
+                IFNULL(LEN(user.description), 0) AS description_length,
+                CAST(user_label_6.label = 'bot' AS DOUBLE) AS bot
+            FROM
+                tweet6
+                INNER JOIN user_label_6 ON (tweet6.user.id_str = user_label_6.id)
+            WHERE hour_diff(created_at, user.created_at) IS NOT NULL
         """))
     
     df_train = reduce(lambda x, y: x.unionAll(y), df_train_list)
     df_test = reduce(lambda x, y: x.unionAll(y), df_test_list)
 
-    df_train.write.parquet(os.path.join(output_path, 'train'))
-    df_test.write.parquet(os.path.join(output_path, 'test'))
+    df_train.write.parquet(os.path.join(output_path, 'train'), mode='overwrite')
+    df_test.write.parquet(os.path.join(output_path, 'test'), mode='overwrite')
 
     print(f'All preprocessed data saved at {output_path}')
 
